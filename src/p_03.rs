@@ -1,25 +1,34 @@
 use std::{fs::read_to_string, u32};
 
 fn read_input(path: &str) -> Vec<Vec<u32>> {
-    let mut inputs = Vec::new();
-    for line in read_to_string(path).expect("Unable to read input").lines() {
-        let mut bank: Vec<u32> = Vec::new();
-        for ch in line.chars() {
-            bank.push(ch.to_digit(10).expect("Bad digit"));
-        }
-        inputs.push(bank);
-    }
-    inputs
+    read_to_string(path)
+        .expect("Unable to read input")
+        .lines()
+        .map(|line| {
+            line.chars()
+                .map(|c| c.to_digit(10).expect("Bad digit"))
+                .collect()
+        })
+        .collect()
 }
 
 fn pr_1(path: &str) -> u64 {
-    let banks = read_input(path);
-    let mut answer: u64 = 0;
-    for bank in banks.into_iter() {
-        let jolts = get_max_joltage(bank) as u64;
-        answer += jolts;
-    }
-    answer
+    read_input(path)
+        .into_iter()
+        .map(|bank| get_max_joltage(bank) as u64)
+        .sum()
+}
+
+fn get_max_joltage_1_fp(bank: Vec<u32>) -> u32 {
+    let (i, _) =
+        bank.iter().enumerate().fold(
+            (0, 0),
+            |(max_i, max_v), (i, &v)| {
+                if v > max_v { (i, v) } else { (max_i, max_v) }
+            },
+        );
+    let rmax = bank.iter().skip(i + 1).max().expect("No second max found");
+    (bank[i] * 10) + rmax
 }
 
 fn get_max_joltage(bank: Vec<u32>) -> u32 {
@@ -49,6 +58,10 @@ fn pr_2(path: &str) -> u128 {
     answer
 }
 
+fn pr_2_fp(path: &str) -> u128 {
+    read_input(path).into_iter().map(get_max_joltage_2_fp).sum()
+}
+
 fn get_max_joltage_2(bank: Vec<u32>) -> u128 {
     let digits_remaining: usize = 12;
     let mut max_joltage: u128 = 0;
@@ -66,6 +79,21 @@ fn get_max_joltage_2(bank: Vec<u32>) -> u128 {
     return max_joltage;
 }
 
+fn get_max_joltage_2_fp(bank: Vec<u32>) -> u128 {
+    let k = 12;
+    let n = bank.len();
+
+    (0..k)
+        .fold((0usize, 0u128), |(li, acc), chosen| {
+            let r = k - chosen;
+            let ri = n - r + 1;
+            let (idx, digit) = find_max_digit_fp(&bank, li, ri);
+            let new_acc = acc + (digit as u128) + 10u128.pow((r - 1) as u32);
+            (idx + 1, new_acc)
+        })
+        .1
+}
+
 fn find_max_digit(bank: &Vec<u32>, li: usize, ri: usize) -> (u32, usize) {
     let mut new_li = 0;
     let mut max_dig = 0;
@@ -78,19 +106,21 @@ fn find_max_digit(bank: &Vec<u32>, li: usize, ri: usize) -> (u32, usize) {
     (max_dig, new_li)
 }
 
+fn find_max_digit_fp(bank: &[u32], li: usize, ri: usize) -> (usize, u32) {
+    bank[li..ri]
+        .iter()
+        .enumerate()
+        .map(|(i, &v)| (li + i, v)) // <- (index, value)
+        .max_by_key(|&(_, v)| v)
+        .unwrap()
+}
+
 mod test {
-    use crate::p_03::{pr_1, pr_2, read_input};
+    use crate::p_03::{pr_1, pr_2, pr_2_fp, read_input};
 
     #[test]
     fn test_sample_1() {
         const PATH: &str = "/Users/saranshagarwal/Code/aoc2025/src/p_03_sample.txt";
-        let inputs = read_input(PATH);
-        for bank in inputs {
-            for bat in bank {
-                print!("{},", bat);
-            }
-            println!();
-        }
         println!("The answer is {}", pr_1(PATH));
     }
 
@@ -110,5 +140,6 @@ mod test {
     fn test_2() {
         const PATH: &str = "/Users/saranshagarwal/Code/aoc2025/src/p_03.txt";
         println!("The answer is {}", pr_2(PATH));
+        println!("The answer is {}", pr_2_fp(PATH));
     }
 }
