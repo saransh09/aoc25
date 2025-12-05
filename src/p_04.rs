@@ -105,7 +105,7 @@ fn modify_grid(mut grid: Vec<Vec<char>>, enhanced_grid: Vec<Vec<CellState>>) -> 
     grid
 }
 
-fn enhance_grid(grid: &Vec<Vec<char>>) -> (Vec<Vec<CellState>>, u64) {
+fn enhance_grid(grid: &[Vec<char>]) -> (Vec<Vec<CellState>>, u64) {
     let mut num_accessible: u64 = 0;
     let mut enhanced_grid: Vec<Vec<CellState>> = Vec::new();
     for i in 0..grid.len() {
@@ -122,7 +122,7 @@ fn enhance_grid(grid: &Vec<Vec<char>>) -> (Vec<Vec<CellState>>, u64) {
     (enhanced_grid, num_accessible)
 }
 
-fn enhance_helper(grid: &Vec<Vec<char>>, x: usize, y: usize) -> CellState {
+fn enhance_helper(grid: &[Vec<char>], x: usize, y: usize) -> CellState {
     let mut n_count: u64 = 0;
     for (dx, dy) in DIRS {
         if (x as i32 + dx) >= 0
