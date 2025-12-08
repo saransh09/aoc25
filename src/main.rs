@@ -6,6 +6,7 @@ mod p_04;
 mod p_05;
 mod p_06;
 mod p_07;
+mod p_08;
 mod visualizer_p04;
 
 fn main() {
